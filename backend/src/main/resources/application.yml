@@ -1,0 +1,63 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+
+spring:
+  application:
+    name: contract-analysis
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/cip_db
+    username: postgres
+    password: root@1234
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 55MB
+
+jwt:
+  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+  access-token-expiration: 900000        # 15 minutes
+  refresh-token-expiration: 604800000    # 7 days
+
+llm:
+  mock: true                             # Set to false to use real Ollama
+  ollama:
+    base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+    model: ambuj-indian-legal-llama
+    timeout-seconds: 120
+    max-tokens: 4096
+    temperature: 0.1
+
+file:
+  upload-dir: ${FILE_UPLOAD_DIR:./uploads}
+  max-size-mb: 50
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.cip: DEBUG
+    org.springframework.security: INFO

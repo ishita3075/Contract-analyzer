@@ -1,0 +1,28 @@
+# Node
+node_modules/
+dist/
+.env
+
+# Java / Maven
+target/
+*.class
+*.log
+*.jar
+*.war
+*.ear
+.mvn/
+.settings/
+.classpath
+.project
+.factorypath
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+backend/uploads/
+backend/startup_log*.txt
+uploads/
