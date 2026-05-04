@@ -33,6 +33,7 @@ public class DocumentService {
     private final UserRepository userRepository;
     private final AuditService auditService;
     private final LlmService llmService;
+    private final DocumentChunkerService chunkerService;
     private final Tika tika;
 
     private static final Set<String> ALLOWED_TYPES = Set.of(
@@ -102,11 +103,41 @@ public class DocumentService {
         String extractedText = extractText(doc.getFileStorageKey());
         doc.setExtractedText(extractedText);
 
-        // Step 2: LLM Analysis
+        // Step 2: LLM Analysis (with Chunking)
         doc.setStatus(Document.AnalysisStatus.ANALYZING);
         documentRepository.save(doc);
 
-        LlmAnalysisResponse llmResponse = llmService.analyzeContract(extractedText);
+        List<String> chunks = chunkerService.createChunks(extractedText);
+        List<LlmAnalysisResponse> chunkResponses = new ArrayList<>();
+
+        log.info("Analyzing document {} in {} chunks", documentId, chunks.size());
+        
+        for (int i = 0; i < chunks.size(); i++) {
+            log.info("Analyzing chunk {}/{} for document {}", i + 1, chunks.size(), documentId);
+            LlmAnalysisResponse chunkResponse = llmService.analyzeContract(chunks.get(i));
+            chunkResponses.add(chunkResponse);
+            
+            // Early exit if the first chunk is definitely not a contract
+            if (i == 0 && Boolean.FALSE.equals(chunkResponse.getIsContract()) && chunks.size() > 1) {
+                log.warn("First chunk identified as non-contract, stopping analysis.");
+                break;
+            }
+        }
+
+        LlmAnalysisResponse llmResponse = LlmAnalysisResponse.merge(chunkResponses);
+
+        doc.setIsContract(!Boolean.FALSE.equals(llmResponse.getIsContract()));
+        doc.setContractType(llmResponse.getContractType());
+        doc.setValidationMessage(llmResponse.getValidationMessage());
+
+        if (Boolean.FALSE.equals(llmResponse.getIsContract())) {
+            doc.setStatus(Document.AnalysisStatus.INVALID_DOCUMENT);
+            doc.setAnalyzedAt(LocalDateTime.now());
+            documentRepository.save(doc);
+            auditService.log("DOCUMENT_INVALID", uploaderEmail, documentId,
+                    "Document flagged as non-contract: " + llmResponse.getValidationMessage());
+            return;
+        }
 
         // Step 3: Persist clauses
         clauseRepository.deleteByDocument(doc);
@@ -203,6 +234,9 @@ public class DocumentService {
                 .unusualTermCount((int) unusualCount)
                 .clauses(clauses.stream().map(this::toClauseDetail).collect(Collectors.toList()))
                 .missingClauses(missing.stream().map(this::toMissingClauseDto).collect(Collectors.toList()))
+                .isContract(doc.getIsContract())
+                .contractType(doc.getContractType())
+                .validationMessage(doc.getValidationMessage())
                 .analyzedAt(doc.getAnalyzedAt())
                 .build();
     }
@@ -311,6 +345,9 @@ public class DocumentService {
                 .missingClauseCount(missingCount)
                 .createdAt(doc.getCreatedAt())
                 .analyzedAt(doc.getAnalyzedAt())
+                .isContract(doc.getIsContract())
+                .contractType(doc.getContractType())
+                .validationMessage(doc.getValidationMessage())
                 .uploadedBy(doc.getUploadedBy() != null ? doc.getUploadedBy().getName() : null)
                 .build();
     }

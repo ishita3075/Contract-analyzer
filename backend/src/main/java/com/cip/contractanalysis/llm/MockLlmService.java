@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Random;
 
 /**
  * Mock LLM service that returns realistic contract analysis data without
@@ -13,11 +12,9 @@ import java.util.Random;
  * Active when llm.mock=true in application.yml.
  */
 @Service
-@ConditionalOnProperty(name = "llm.mock", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "llm.mock", havingValue = "true")
 @Slf4j
 public class MockLlmService implements LlmService {
-
-        private final Random random = new Random();
 
         @Override
         public LlmAnalysisResponse analyzeContract(String contractText) {
@@ -30,6 +27,9 @@ public class MockLlmService implements LlmService {
                 }
 
                 LlmAnalysisResponse response = new LlmAnalysisResponse();
+                response.setIsContract(true);
+                response.setContractType("Master Service Agreement");
+                response.setValidationMessage("Document contains formal agreement structure, party definitions, and binding obligations.");
 
                 // Generate realistic mock clauses
                 response.setClauses(List.of(

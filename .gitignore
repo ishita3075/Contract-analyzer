@@ -26,3 +26,6 @@ target/
 backend/uploads/
 backend/startup_log*.txt
 uploads/
+*.gguf
+Modelfile
+backend/src/main/resources/schema.sql

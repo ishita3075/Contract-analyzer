@@ -17,7 +17,6 @@ public class TemplateService {
 
     private final ClauseTemplateRepository templateRepository;
     private final UserRepository userRepository;
-    private final OrganizationRepository organizationRepository;
 
     public List<TemplateDto.TemplateResponse> listTemplates(String userEmail) {
         User user = userRepository.findByEmail(userEmail)

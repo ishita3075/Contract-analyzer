@@ -173,6 +173,40 @@ export default function AnalysisViewerPage() {
     </div>
   );
 
+  if (analysis.isContract === false) return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <button className="btn-ghost" style={{ padding: '6px 10px' }} onClick={() => navigate('/documents')}>
+          <ArrowLeft size={14} />
+        </button>
+        <div style={{ fontWeight: 700, fontSize: 15 }}>{analysis.filename}</div>
+      </div>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div style={{ maxWidth: 500, textAlign: 'center', background: 'var(--glass)', border: '1px solid var(--glass-border)', borderRadius: 16, padding: 40 }}>
+          <div style={{ width: 64, height: 64, background: 'rgba(239,68,68,0.1)', color: 'var(--risk-high)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+            <ShieldAlert size={32} />
+          </div>
+          <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 12 }}>Not a Legal Contract</h2>
+          <p style={{ color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 24 }}>
+            The AI has determined that this document is not a formal legal contract or agreement.
+          </p>
+          <div style={{ background: 'rgba(0,0,0,0.2)', borderRadius: 12, padding: 20, textAlign: 'left', marginBottom: 24 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-subtle)', textTransform: 'uppercase', marginBottom: 8 }}>Validation Feedback</div>
+            <p style={{ fontSize: 14, color: 'var(--text-primary)' }}>{analysis.validationMessage || "The uploaded document lacks standard legal structure, party definitions, and binding obligations."}</p>
+            {analysis.contractType && (
+              <div style={{ marginTop: 12 }}>
+                <span className="badge" style={{ background: 'rgba(99,102,241,0.1)', color: 'var(--primary)', border: 'none' }}>
+                  Type: {analysis.contractType}
+                </span>
+              </div>
+            )}
+          </div>
+          <button className="btn-primary" onClick={() => navigate('/documents')}>Return to Dashboard</button>
+        </div>
+      </div>
+    </div>
+  );
+
   const riskColor = analysis.overallRiskLevel === 'HIGH' ? 'var(--risk-high)' : analysis.overallRiskLevel === 'MEDIUM' ? 'var(--risk-medium)' : 'var(--risk-low)';
   const filteredClauses = riskFilter ? analysis.clauses.filter(c => c.riskLevel === riskFilter) : analysis.clauses;
   const oneSidedClauses = analysis.clauses.filter(c => c.isOneSided);

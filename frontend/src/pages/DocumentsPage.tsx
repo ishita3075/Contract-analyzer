@@ -18,6 +18,7 @@ function StatusBadge({ status }: { status: string }) {
     PARSING: { bg: 'rgba(99,102,241,0.1)', color: '#6366F1', label: 'Parsing' },
     UPLOADED: { bg: 'rgba(245,158,11,0.1)', color: '#F59E0B', label: 'Uploaded' },
     FAILED: { bg: 'rgba(239,68,68,0.1)', color: '#EF4444', label: 'Failed' },
+    INVALID_DOCUMENT: { bg: 'rgba(239,68,68,0.1)', color: '#EF4444', label: 'Not a Contract' },
   };
   const s = map[status] || { bg: 'var(--bg-card)', color: 'var(--text-muted)', label: status };
   return <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 20, background: s.bg, color: s.color }}>{s.label}</span>;

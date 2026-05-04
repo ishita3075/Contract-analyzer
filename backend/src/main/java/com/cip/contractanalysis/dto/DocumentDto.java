@@ -22,6 +22,9 @@ public class DocumentDto {
         private Integer missingClauseCount;
         private Integer oneSidedClauseCount;
         private Integer unusualTermCount;
+        private Boolean isContract;
+        private String contractType;
+        private String validationMessage;
         private LocalDateTime createdAt;
         private LocalDateTime analyzedAt;
         private String uploadedBy;
@@ -42,6 +45,9 @@ public class DocumentDto {
         private Integer unusualTermCount;
         private String oneSidedClausesSummary;
         private String unusualTermsSummary;
+        private Boolean isContract;
+        private String contractType;
+        private String validationMessage;
         private List<ClauseDto.ClauseDetail> clauses;
         private List<MissingClauseDto> missingClauses;
         private LocalDateTime analyzedAt;

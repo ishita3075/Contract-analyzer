@@ -23,8 +23,6 @@ public class ClauseService {
     public List<ClauseDto.ClauseDetail> getClausesForDocument(
             String documentId, String type, String riskLevel, String userEmail) {
 
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         Document doc = documentRepository.findByIdAndDeletedFalse(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
 

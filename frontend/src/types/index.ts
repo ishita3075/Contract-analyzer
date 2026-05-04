@@ -15,7 +15,7 @@ export interface LoginRequest { email: string; password: string; }
 export interface RegisterRequest { email: string; password: string; name: string; orgName?: string; }
 
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
-export type AnalysisStatus = 'UPLOADED' | 'PARSING' | 'ANALYZING' | 'ANALYZED' | 'FAILED';
+export type AnalysisStatus = 'UPLOADED' | 'PARSING' | 'ANALYZING' | 'ANALYZED' | 'FAILED' | 'INVALID_DOCUMENT';
 
 export interface DocumentSummary {
   id: string;
@@ -29,6 +29,9 @@ export interface DocumentSummary {
   missingClauseCount: number;
   oneSidedClauseCount?: number;
   unusualTermCount?: number;
+  isContract?: boolean;
+  contractType?: string;
+  validationMessage?: string;
   createdAt: string;
   analyzedAt: string | null;
   uploadedBy: string;
@@ -70,6 +73,9 @@ export interface DocumentAnalysis {
   unusualTermCount: number;
   oneSidedClausesSummary?: string;
   unusualTermsSummary?: string;
+  isContract?: boolean;
+  contractType?: string;
+  validationMessage?: string;
   clauses: ClauseDetail[];
   missingClauses: MissingClause[];
   analyzedAt: string;

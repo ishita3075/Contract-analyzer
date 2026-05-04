@@ -4,7 +4,7 @@ import { useDropzone } from 'react-dropzone';
 import { api } from '../lib/api';
 import { Upload, FileText, X, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 
-type Stage = 'idle' | 'uploading' | 'analyzing' | 'done' | 'error';
+type Stage = 'idle' | 'uploading' | 'analyzing' | 'done' | 'error' | 'invalid';
 
 export default function UploadPage() {
   const navigate = useNavigate();
@@ -36,8 +36,18 @@ export default function UploadPage() {
       const poll = setInterval(async () => {
         try {
           const doc = await api.getDocument(res.documentId);
-          if (doc.status === 'ANALYZED') { clearInterval(poll); setStage('done'); }
-          else if (doc.status === 'FAILED') { clearInterval(poll); setStage('error'); setError('Analysis failed. Please try again.'); }
+          if (doc.status === 'ANALYZED') { 
+            clearInterval(poll); 
+            setStage('done'); 
+          } else if (doc.status === 'INVALID_DOCUMENT') {
+            clearInterval(poll);
+            setStage('invalid');
+            setError(doc.validationMessage || 'This document does not appear to be a legal contract.');
+          } else if (doc.status === 'FAILED') { 
+            clearInterval(poll); 
+            setStage('error'); 
+            setError('Analysis failed. Please try again.'); 
+          }
         } catch {}
       }, 3000);
     } catch (err: any) {
@@ -156,6 +166,24 @@ export default function UploadPage() {
             </button>
             <button className="btn-ghost" onClick={() => { setFile(null); setStage('idle'); setDocId(''); }}>
               Upload Another
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Invalid Document */}
+      {stage === 'invalid' && (
+        <div className="glass-card" style={{ padding: 48, textAlign: 'center' }}>
+          <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(245,158,11,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+            <AlertCircle size={36} color="#f59e0b" />
+          </div>
+          <div style={{ fontWeight: 800, fontSize: 20, marginBottom: 8 }}>Invalid Document</div>
+          <div style={{ color: 'var(--text-muted)', fontSize: 14, marginBottom: 28 }}>
+            {error}
+          </div>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+            <button className="btn-primary" onClick={() => { setFile(null); setStage('idle'); setError(''); }}>
+              Upload Another File
             </button>
           </div>
         </div>

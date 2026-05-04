@@ -11,12 +11,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 
 /**
  * Real Ollama LLM service — active when llm.mock=false.
  */
 @Service
-@ConditionalOnProperty(name = "llm.mock", havingValue = "false")
+@ConditionalOnExpression("'${llm.mock}' == 'false' and '${llm.provider}' == 'ollama'")
 @RequiredArgsConstructor
 @Slf4j
 public class OllamaLlmService implements LlmService {
@@ -35,11 +36,21 @@ public class OllamaLlmService implements LlmService {
 
   private static final String SYSTEM_PROMPT = """
       You are a senior Indian legal analyst specializing in contract risk assessment under the Indian Contract Act, 1872, and related statutes.
-      Analyze the contract text provided and perform a complete legal analysis.
+      
+      FIRST, determine if the provided text is actually a legal contract or agreement. 
+      A document is a contract if it contains:
+      1. Identification of parties (e.g., "This Agreement is made between...")
+      2. Clear offer and acceptance terms.
+      3. Consideration (payment, services, etc.)
+      4. Binding legal obligations and signatures/execution blocks.
+
       Respond ONLY with a valid JSON object. No prose. No markdown. No explanations outside the JSON.
 
       Return EXACTLY this structure:
       {
+        "isContract": boolean,
+        "contractType": string (e.g., "NDA", "SaaS Agreement", "Employment Contract"),
+        "validationMessage": string (Explain why it is or isn't a contract),
         "clauses": [
           {
             "clauseType": string,
@@ -64,6 +75,8 @@ public class OllamaLlmService implements LlmService {
         "oneSidedClausesSummary": string,
         "unusualTermsSummary": string
       }
+      
+      If "isContract" is false, you may leave "clauses" and "missingClauses" as empty arrays.
       """;
 
   @Override
@@ -78,6 +91,7 @@ public class OllamaLlmService implements LlmService {
             Map.of("role", "system", "content", SYSTEM_PROMPT),
             Map.of("role", "user", "content", contractText)),
         "stream", false,
+        "format", "json",
         "options", Map.of("temperature", 0.1));
 
     try {
@@ -94,11 +108,26 @@ public class OllamaLlmService implements LlmService {
       var message = (Map<?, ?>) responseMap.get("message");
       String content = (String) message.get("content");
 
-      return objectMapper.readValue(content, LlmAnalysisResponse.class);
+      log.info("LLM Raw Content: {}", content);
+
+      try {
+        return objectMapper.readValue(content, LlmAnalysisResponse.class);
+      } catch (Exception e) {
+        log.error("Failed to parse LLM content as JSON: {}. Content: {}", e.getMessage(), content);
+        // Fallback for non-contract documents if AI output is messy
+        if (content.toLowerCase().contains("false") || content.toLowerCase().contains("not a contract")) {
+          LlmAnalysisResponse fallback = new LlmAnalysisResponse();
+          fallback.setIsContract(false);
+          fallback.setValidationMessage("AI identified this as a non-contract document.");
+          return fallback;
+        }
+        throw e;
+      }
 
     } catch (Exception e) {
       log.error("Ollama LLM call failed: {}", e.getMessage(), e);
       throw new RuntimeException("LLM analysis failed: " + e.getMessage(), e);
     }
+
   }
 }

@@ -42,6 +42,10 @@ public class Document {
     @Enumerated(EnumType.STRING)
     private RiskLevel overallRiskLevel;
 
+    private Boolean isContract;
+    private String contractType;
+    private String validationMessage;
+
     private LocalDateTime analyzedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -67,7 +71,7 @@ public class Document {
     private boolean deleted;
 
     public enum AnalysisStatus {
-        UPLOADED, PARSING, ANALYZING, ANALYZED, FAILED
+        UPLOADED, PARSING, ANALYZING, ANALYZED, FAILED, INVALID_DOCUMENT
     }
 
     public enum RiskLevel {

@@ -48,10 +48,6 @@ public class AuthService {
                 .organization(org)
                 .build();
 
-        UserDetails userDetails = org.getUsers() == null || org.getUsers().isEmpty()
-                ? buildUserDetails(request.getEmail(), request.getPassword())
-                : buildUserDetails(request.getEmail(), request.getPassword());
-
         String accessToken = jwtService.generateAccessToken(
                 new org.springframework.security.core.userdetails.User(
                         user.getEmail(), user.getPasswordHash(),
